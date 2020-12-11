@@ -1,0 +1,216 @@
+<html>
+    <head>
+        <style type="text/css">
+
+        *{
+            padding: 0;
+            margin: 0;
+        }
+
+        .block{
+            overflow: hidden;
+            position: relative;
+            width: 400px;
+            height: 200px;
+            margin: 300px;
+        }
+
+        .diagram{
+            position: absolute;
+            width: 1200px;
+            height: 200px;
+            transition:  1s;
+        }
+
+        .picture{
+            width: 400px;
+            height: 200px;
+            float: left;
+        }
+
+        .spot_list{
+            right:30px;
+            bottom: 10px;
+            position: absolute;
+        }
+
+        .spot{
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            background-color: aliceblue;
+            float:left;
+            cursor: pointer;
+        }
+
+        .conner{
+            width: 400px;
+            height: 20px;
+            position: absolute;
+            bottom: 100px;
+        }
+        
+        .con_left{
+            background-color: aliceblue;
+            float: left;
+            cursor: pointer;
+        }
+
+        .con_right{
+            background-color: aliceblue;
+            float: right;
+            cursor: pointer;
+        }
+
+        </style>
+    </head>
+    <body>
+
+        <div class="block">
+            <div class="diagram">
+                <div class="picture">
+                    <img src="test1.jpg" style="width:400px;height:200px" draggable="false">
+                </div>
+                <div class="picture">
+                    <img src="test2.jpg" style="width:400px;height:200px" draggable="false">
+                </div>
+                <div class="picture">
+                    <img src="test3.jpg" style="width:400px;height:200px" draggable="false">
+                </div>
+            </div>
+
+            <div class="spot_list">
+                <div class="spot" onclick="pictureLeft(0)" >1</div>
+                <div class="spot" onclick="pictureLeft(1)" >2</div>
+                <div class="spot" onclick="pictureLeft(2)" >3</div>
+            </div>
+
+            <div class="conner">
+                <div class="con_left"> < </div>
+                <div class="con_right"> > </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            var diagram = document.getElementsByClassName("diagram")[0],
+                block = document.getElementsByClassName("block")[0],
+                con_left = document.getElementsByClassName("con_left")[0],
+                con_right = document.getElementsByClassName("con_right")[0],
+                spot = document.getElementsByClassName("spot"),
+
+                index=0,
+                turn = new Array("0px","-400px","-800px"),
+                timer;
+
+            var _left = 0;
+
+            diagram.style.left="0px";
+
+            //0.0检测图片的位置
+            const numbercheck = ()=>{
+                if(diagram.style.left==turn[0]) index=0;
+                else if(diagram.style.left==turn[1]) index=1;
+                else if(diagram.style.left==turn[2]) index=2;
+            }
+
+            //0.5自由移动 时间+动态函数
+            const move=()=>{
+                timer = setInterval(change,2000);
+            }
+
+            const change=()=>{
+                if(index!=2){
+                    diagram.style.left=turn[index+1];
+                    index++;
+                }
+                else{
+                    index=-1;
+                    diagram.style.left=turn[index+1];
+                    index++;
+                }                    
+            }            
+
+            //1.0拖拽图片+自由移动触发
+            block.onmousedown=(event)=>{
+                slabel=event.offsetX;
+                s_label=event.clientX;
+
+                block.onmousemove=(event)=>{
+                    diagram.style.transition="0s";
+                    elabel=event.offsetX;
+
+                    _left= parseInt(diagram.style.left) + elabel-slabel;
+                    diagram.style.left = _left+"px" ;
+                    console.log(_left);
+
+                }
+
+                block.onmouseup=(event)=>{
+                    e_label=event.clientX;
+                    block.onmousemove=null;
+                    diagram.style.transition="1s";
+                //1.5弹回设置已经超过区域翻页
+                //起-初<0向左拉，判断是否往右一张
+                    if (e_label-s_label<=-200) {
+                        if(index == 2) {
+                            index = -1;
+                        }
+                        index++;
+                    }
+                //起-初>0向右拉，判断是否往左一张
+                    else if (e_label-s_label>=200) {
+                        if(index == 0){
+                            index = 3;
+                        }
+                        index--;
+                    }
+                    diagram.style.left=turn[index];
+                }
+            }
+
+            block.onmouseover=()=>{
+                clearInterval(timer);
+            }
+
+            block.onmouseout=()=>{
+                block.onmousemove=null;
+                diagram.style.left=turn[index];
+                diagram.style.transition="1s";
+                move();
+            }
+            move();
+
+            //2.0小按钮实现
+            con_left.onclick = () =>{
+                if(index!=0){
+                    index=index-1;
+                    diagram.style.left=turn[index];
+                }
+                else if(index==0){
+                    index=2;
+                    diagram.style.left="-800px";
+                }
+                numbercheck();
+            }
+                                
+            con_right.onclick = () =>{
+                if(index!=2){
+                    index=index+1;
+                    diagram.style.left=turn[index];
+                }
+                else if(index==2){
+                    index=0;
+                    diagram.style.left="0px";
+                }
+                numbercheck();
+            }
+
+            const pictureLeft = (i) => {
+                diagram.style.left = -(i * 400) + "px";
+                numbercheck();
+            }
+
+        </script>
+    </body>
+</html>

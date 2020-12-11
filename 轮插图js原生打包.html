@@ -1,0 +1,175 @@
+<!-- 轮播图4.0拖拽功能,很简单 -->
+<html>
+    <head>
+
+    </head>
+    <body>
+        <script type="text/javascript">
+
+            
+            function autopicture(name,left,top,picnum,color){
+                this.name=name;
+                this.left=left;
+                this.top=top;
+                this.picnum=picnum;
+                this.color=color;
+
+
+//1.0创建框架
+                this.create=()=>{
+//外部框架
+                    let block = document.createElement('div');
+                        block.className = this.name;
+                        block.style.overflow = "hidden";
+                        block.style.position = "relative";
+                        block.style.width = "400px";
+                        block.style.height = "200px";
+                        block.style.float = "left";
+                        block.style.left=this.left;
+                        block.style.top=this.top;
+                        block.innerHTML = '<div class="picture'+this.name+'" style="width:'+this.picnum*400+'px; height:200px; position:absolute; transition:1s;"></div>'
+                                        +'<div class="spot_list'+this.name+'" style="right:30px; bottom:10px; position:absolute;"></div>'
+                                        +'<div class="conner'+this.name+'" style="width:400px; height:20px; position:absolute; bottom:100px;""></div>';
+//得先插入然后再找picture的值,picture长条
+                    let bo = document.body; 
+                        bo.insertBefore(block, bo.lastChild);
+//diagram节点，与num有关
+                    let picture = document.getElementsByClassName('picture'+this.name)[0];
+                    for(let i=1;i<=this.picnum;i++){
+                        picture.innerHTML += '<div class="diagram" style="width:400px; height:200px; float:left; background:'+this.color+';">'+i+'</div>';
+                    }
+//spot节点，与num有关
+                    let spot_list = document.getElementsByClassName('spot_list'+this.name)[0];
+                    for(let i=1;i<=this.picnum;i++){
+                        spot_list.innerHTML +='<div class="spot'+this.name+'" style="width:20px; height:20px; margin-left:10px; background:aliceblue; float:left; cursor:pointer;">'+i+'</div>';
+                    }
+//插入左右按钮
+                    let conner = document.getElementsByClassName('conner'+this.name)[0];
+                    conner.innerHTML = '<div class="con_left'+this.name+'" style="background:aliceblue; float:left; cursor:pointer;"> < </div>'
+                                     + '<div class="con_right'+this.name+'" style="background:aliceblue; float:right; cursor:pointer;"> > </div>';
+                }
+                this.create();
+
+//1.9变量定义
+                let index=0,
+                    timer,
+                    turn = new Array(),
+                    block_ = document.getElementsByClassName(this.name)[0],
+                    picture_ = document.getElementsByClassName('picture'+this.name)[0],
+                    con_left_ = document.getElementsByClassName("con_left"+this.name)[0],
+                    con_right_ = document.getElementsByClassName("con_right"+this.name)[0],
+                    spot = document.getElementsByClassName('spot'+this.name);
+                    console.log(spot);
+
+                turn.length = this.picnum;
+                for(let i=0;i<this.picnum;i++){
+                    turn[i]=-i*400+'px';
+                }
+
+//2.0自动轮播
+                this.move=()=>{
+                    timer = setInterval(this.change,2000);
+                }
+                this.change=()=>{
+                    if(index!=this.picnum-1){
+                        picture_.style.left=turn[index+1];
+                        index++;
+                    }
+                    else{
+                        index=-1;
+                        picture_.style.left=turn[index+1];
+                        index++;
+                    }                    
+                } 
+                block_.onmouseover=()=>{
+                    clearInterval(timer);
+                }
+                block_.onmouseout=()=>{
+                    picture_.style.left=turn[index];
+                    picture_.style.transition="1s";
+                    this.move();
+                }
+                this.move();
+
+//3.0小按钮设置
+//左右按钮
+                this.numbercheck=()=>{
+                    for(let i=0;i<this.picnum;i++){
+                        if(picture_.style.left==turn[i]) index=i;
+                    }
+                }
+                con_left_.onclick=()=>{
+                    if(index!=0){
+                        index=index-1;
+                        picture_.style.left=turn[index];
+                    }
+                    else{
+                        index=2;
+                        picture_.style.left=turn[this.picnum-1];
+                    }
+                }                                   
+                con_right_.onclick=()=>{
+                    if(index!=this.picnum-1){
+                        index=index+1;
+                        picture_.style.left=turn[index];
+                    }
+                    else{
+                        index=0;
+                        picture_.style.left=turn[0];
+                    }
+                }
+
+//底下小按钮
+                this.click_spot=()=>{
+                    for(let i=0;i<picnum;i++){
+                            spot[i].onclick=()=>{
+                                picture_.style.left=turn[i];
+                                this.numbercheck();
+                        }                    
+                    }
+                }
+                this.click_spot();
+
+//4.0拖动
+                block_.onmousedown=(event)=>{
+                    slabel=event.offsetX;
+                    s_label=event.clientX;
+
+                    block_.onmousemove=(event)=>{
+                        picture_.style.transition="0s";
+                        elabel=event.offsetX;
+
+                        _left= parseInt(picture_.style.left) + elabel-slabel;
+                        picture_.style.left = _left+"px" ;
+                    }
+
+                    block_.onmouseup=(event)=>{
+                        e_label=event.clientX;
+                        block_.onmousemove=null;
+                        picture_.style.transition="1s";
+                    //1.5弹回设置已经超过区域翻页
+                    //起-初<0向左拉，判断是否往右一张
+                        if (e_label-s_label<=-200) {
+                            if(index == 2) {
+                                index = -1;
+                            }
+                            index++;
+                        }
+                    //起-初>0向右拉，判断是否往左一张
+                        else if (e_label-s_label>=200) {
+                            if(index == 0){
+                                index = 3;
+                            }
+                            index--;
+                        }
+                        picture_.style.left=turn[index];
+                    }
+                }
+            }
+
+            block1=new autopicture("block1","500px","200px",3,"red");
+            block2=new autopicture("block2","300px","500px",5,"blueviolet");
+
+        </script>
+    </body>
+</html>
